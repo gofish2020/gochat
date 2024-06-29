@@ -1,0 +1,5 @@
+[task-base]
+cpuNum = 4
+rpcAddress = "tcp@localhost:6923"
+pushChan = 2
+pushChanSize = 50

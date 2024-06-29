@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+
+  # Redis 服务配置
+  redis:
+    image: redis:6.2.5
+    container_name: redis
+    ports:
+      - 6379:6379
+    environment:
+      # 时区上海 - Time zone Shanghai (Change if needed)
+      TZ: Asia/Shanghai
+    volumes:
+      # 数据文件 - data files
+      - ./data/redis/data:/data:rw
+    command: "redis-server --appendonly yes"
+    privileged: true
+    restart: always
+    networks:
+      - looklook_net
+
+  etcd:
+    hostname: etcd
+    container_name: etcd
+    image: bitnami/etcd:3
+    volumes:
+      - "./data/etcd/data:/bitnami/etcd/data"
+    environment:
+      - "ALLOW_NONE_AUTHENTICATION=yes"
+      - "ETCD_ADVERTISE_CLIENT_URLS=http://0.0.0.0:2379"
+      - "ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379"
+    ports:
+      - "2379:2379"
+      - "2380:2380"
+    networks:
+      - looklook_net
+
+  # etcd的UI客户端（这个用来查看etcd中的kv值的）安不安装不影响
+  etcdkeeper:
+    container_name: etcdkeeper
+    image: evildecay/etcdkeeper:latest
+    ports:
+      - "8088:8080"
+    networks:
+      - looklook_net
+      
+networks:
+  looklook_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.16.0.0/16
