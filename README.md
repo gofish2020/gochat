@@ -4,7 +4,7 @@
 
 
 ## 前言
-整个项目的效果类似于腾讯课堂，加入一个直播聊天室（发送消息 && 接受消息）
+整个项目的效果类似于腾讯课堂，加入一个直播聊天室（发送消息 && 接收消息）
 
 看代码的时候建议大家多关注技术细节（这个才是最通用的东西）：比如 tcp如何封包/拆包；http怎么允许跨域访问，gin中怎么用中间件来做统一`token`校验，服务注册发现怎么实现等等，代码中做了注释，可以直接从`main.go`文件看起，相信会有很大收获。
 
@@ -261,7 +261,7 @@ func (logic *Logic) RedisPublishRoomInfo(roomId int, count int, RoomUserInfo map
 
 **此时的 `task`服务**会一直**监视** `gochat_queue`是否有数据需要处理（代码路径：`task/queue.go`）
 
-- 就是一个 `for`死循话，不断的通过`BRPop`命令读取`redis`
+- 就是一个 `for`死循环，不断通过`BRPop`命令读取`redis`
 - 每读到一个消息，就调用一次`task.Push`函数
 
 ```go
