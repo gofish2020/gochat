@@ -48,7 +48,7 @@ func (logic *Logic) InitRpcServer() (err error) {
 	rpcAddressList := strings.Split(config.Conf.Logic.LogicBase.RpcAddress, ",") //tcp@127.0.0.1:6900,tcp@127.0.0.1:6901
 	for _, bind := range rpcAddressList {
 
-		// tpc + ip:port
+		// tcp + ip:port
 		if network, addr, err = tools.ParseNetwork(bind); err != nil {
 			logrus.Panicf("InitLogicRpc ParseNetwork error : %s", err.Error())
 		}
@@ -63,15 +63,16 @@ func (logic *Logic) createRpcServer(network string, addr string) {
 	s := server.NewServer()
 	logic.addRegistryPlugin(s, network, addr)
 
-	//   /gochat_srv/LogicRpc/tcp@127.0.0.1:6900  对应new(RpcLogic)对象 (注册到 etcd中)
+	//   /gochat_srv/LogicRpc/tcp@127.0.0.1:6900  对应 new(RpcLogic)对象 (注册到 etcd中)
 	err := s.RegisterName(config.Conf.Common.CommonEtcd.ServerPathLogic, new(RpcLogic), logic.ServerId)
 
 	if err != nil {
 		logrus.Errorf("register error:%s", err.Error())
 	}
 
+	// 在同一个服务中，不同的对象，需要不同的name进行对应
 	// 表示注册 /gochat_srv/TestLogic/tcp@127.0.0.1:6900  对应  new(TestLogic)
-	// err = s.Register(new(TestLogic), logic.ServerId) // 在同一个服务中，不同的对象，需要不同的name进行对应
+	// err = s.Register(new(TestLogic), logic.ServerId)
 	// if err != nil {
 	// 	logrus.Errorf("register error:%s", err.Error())
 	// }
@@ -86,13 +87,16 @@ func (logic *Logic) createRpcServer(network string, addr string) {
 }
 
 func (logic *Logic) addRegistryPlugin(s *server.Server, network string, addr string) {
+
+	// 这里是 ectd 配置
 	r := &serverplugin.EtcdV3RegisterPlugin{
-		ServiceAddress: network + "@" + addr,
-		EtcdServers:    []string{config.Conf.Common.CommonEtcd.Host},
-		BasePath:       config.Conf.Common.CommonEtcd.BasePath,
+		ServiceAddress: network + "@" + addr,                         // 应用服务端的地址
+		EtcdServers:    []string{config.Conf.Common.CommonEtcd.Host}, // etcd 服务端地址
+		BasePath:       config.Conf.Common.CommonEtcd.BasePath,       // 公共的基础路径
 		Metrics:        metrics.NewRegistry(),
 		UpdateInterval: time.Minute,
 	}
+	// 连接 etcd
 	err := r.Start()
 	if err != nil {
 		logrus.Fatal(err)

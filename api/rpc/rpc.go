@@ -58,11 +58,14 @@ func InitLogicRpcClient() {
 			logrus.Infof("key is:%s,value is:%s", connectConf.Key, connectConf.Value)
 		}
 		// 初始化 logic 的 rpc 客户端
-		LogicRpcClient = client.NewXClient(config.Conf.Common.CommonEtcd.ServerPathLogic, client.Failtry, client.RandomSelect, d, client.DefaultOption) //在etcd中，基于servicePath 随机选择一个 rpc server，并建立连接
+		// 在etcd中注册的信息格式为 ： /gochat_srv/LogicRpc/tcp@127.0.0.1:6900    /gochat_srv/LogicRpc/tcp@127.0.0.1:6901
+		// 这里会读取前缀为 /gochat_srv/LogicRpc 格式的信息，并随机选择一个进行连接
+		LogicRpcClient = client.NewXClient(config.Conf.Common.CommonEtcd.ServerPathLogic, client.Failtry, client.RandomSelect, d, client.DefaultOption) //在etcd中，基于 BasePath + ServerPathLogic 随机选择一个 rpc server，并建立连接
 
+		
 		// d1, err := etcdV3.NewEtcdV3Discovery(
 		// 	config.Conf.Common.CommonEtcd.BasePath,       // /gochat_srv
-		// 	"TestLogic",                                  // test
+		// 	"TestLogic",                                  // TestLogic
 		// 	[]string{config.Conf.Common.CommonEtcd.Host}, // 127.0.0.1:2379
 		// 	true,
 		// 	etcdConfigOption,
